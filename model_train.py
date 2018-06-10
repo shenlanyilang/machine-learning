@@ -46,8 +46,8 @@ def lr_model(train_features, train_labels, test_features):
 def nb_model(train_features, train_labels, test_features):
     nb_best = MultinomialNB(alpha=0.03)
     nb_best.fit(X=train_features, y=train_labels)
-    train_preds = nb_model.predict(train_features)
-    test_preds = nb_model.predict(test_features)
+    train_preds = nb_best.predict(train_features)
+    test_preds = nb_best.predict(test_features)
     return train_preds, test_preds, nb_best
 
 def xgb_model(train_features, train_labels, test_features):
@@ -110,7 +110,7 @@ def main():
         tokenizer=my_tokenize,
         analyzer="word",
         stop_words=stoplist,
-        ngram_range=(1, 3),
+        ngram_range=(1, 2),
         max_df=0.9,
         min_df=3,
         #max_features=100000,

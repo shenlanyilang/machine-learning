@@ -125,3 +125,33 @@ def main():
 if __name__ == "__main__":
     main()
 
+if not os.path.exists(all_data_dir):
+    os.mkdir(all_data_dir)
+    file2cat = {}
+    for cat in train_cat:
+        files = os.listdir(os.path.join(train_dir, cat))
+        for f in files:
+            file2cat[cat+f] = cat
+            shutil.copy(os.path.join(train_dir, cat, f), "./all_cleaned_data"+"/"+cat+f)
+
+    for cat in test_cat:
+        files = os.listdir(os.path.join(test_dir, cat))
+        for f in files:
+            file2cat[cat+f] = cat
+        shutil.copy(os.path.join(test_dir, cat, f), "./all_cleaned_data"+"/"+cat+f)
+
+    if not os.path.exists("./parameters"):
+        os.mkdir("./parameters")
+        fp = open("./parameters/file2cat.pkl", "wb")
+        pickle.dump(file2cat, fp)
+        fp.close()
+
+data_etl = MyDoc()
+doc_cnt_len = data_etl.getDocLen()
+word_cnt = data_etl.getWordCnt()
+cat_cnt = data_etl.getCatCnt()
+cat_doc_len = data_etl.catDocLen()
+print("catogory word count is ", cat_cnt)
+print("most common 20 words are ", word_cnt.most_common(20))
+print("all doc mean length is ", np.mean(np.array(doc_cnt_len)))
+print("catogory mean word count is ", cat_doc_len)
