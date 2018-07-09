@@ -1,0 +1,4 @@
+1.项目使用python3作为开发语言，其中用到的python库包括sklearn,nltk,xgboost,numpy,pandas,matplotlib.
+2.文档中使用的数据集为20 Newsgroups,可通过以下链接下载，http://www.qwone.com/~jason/20Newsgroups/20news-bydate.tar.gz.
+3.代码共有四个部分组成，分别为data_clean.py,data_explore.py,cross_validation.py和model_train.py,运行前需将下载下来的数据集解压后的两个文件夹20news-bydate-train和20news-bydate-test和前面的四个python代码文件放在同一个目录下。
+4.四个代码的运行环境均为windos下，顺序分别为data_clean.py,data_explore.py,cross_validation.py和model_train.py,运行时间大致分别为5分钟，5分钟，数个小时，10分钟。如果嫌cross_validation运行时间较长，此部分代码可不运行。
