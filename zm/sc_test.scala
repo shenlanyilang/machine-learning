@@ -1,14 +1,10 @@
 package com.zm
 
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark._
+/*import org.apache.log4j.Logger
+import org.apache.log4j.Level*/
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
-import org.apache.spark.ml.recommendation.ALS
-import org.apache.spark.ml.evaluation.RegressionEvaluator
-import scala.collection.mutable.ArrayBuffer
-import org.apache.spark.ml.evaluation.Evaluator
-import org.apache.spark.ml.param.shared._
+
 
 
 object sc_test {
@@ -19,6 +15,10 @@ object sc_test {
     x.replaceAll(" +",",")
   }
 
+  val testFunc = (a:Int, b:Int) => {
+    a+b
+  }
+
   def main(args: Array[String]) {
 
     /*val day=args(0)
@@ -27,6 +27,7 @@ object sc_test {
     println("number "+number)
     println("day type is "+day.getClass.getName)
     println("number type is "+number.getClass.getName)*/
+    //Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     val innerStruct =
       StructType(
         StructField("f1", IntegerType, true) ::
@@ -37,32 +38,44 @@ object sc_test {
     val recs = Array(
       BookPair(1, 2, 3, "book1", "book2"),
       BookPair(2, 3, 1, "book2", "book3"),
-      BookPair(1, 3, 2, "book1", "book3"),
-      BookPair(1, 4, 5, "book1", "book4"),
+      BookPair(3, 3, 2, "book1", "book3"),
+      BookPair(5, 4, 5, "book1", "book4"),
       BookPair(2, 4, 7, "book2", "book4")
     )
 
-    val sc = SparkSession.builder().appName("mytest2").getOrCreate()
+    val recs0 = Array(
+      BookPair(1, 2, 3, "book1", "book2"),
+      BookPair(2, 3, 1, "book5", "book3"),
+      BookPair(2, 3, 2, "book3", "book3"),
+      BookPair(1, 4, 5, "book1", "book4"),
+      BookPair(2, 4, 7, "book2", "book4")
+    )
+    val sc = SparkSession.builder().appName("mytest2").master("local").getOrCreate()
     import sc.implicits._
 
     val recs2 = sc.sparkContext.parallelize(recs).map(book => Row(book.book1,book.book2,book.name1))
-    println("rec2 first row type is "+recs2.getClass.getName)
-    //val fields = "book1,book2,name1".split(",").map(name => StructField(name,StringType,nullable = true))
+    val recs3 = sc.sparkContext.parallelize(recs0).map(book => Row(book.book1,book.book2,book.name1))
+
     val fields = Array(StructField("book1",IntegerType,nullable=true), StructField("book2",IntegerType,nullable = true),
       StructField("name1",StringType,nullable = true))
+    val fields2 = Array(StructField("book1",IntegerType,nullable=true), StructField("book4",IntegerType,nullable = true),
+      StructField("name1",StringType,nullable = true))
     val schema = StructType(fields)
+    val schema2 = StructType(fields2)
     val bookDF = sc.createDataFrame(recs2, schema)
-    val book0 = bookDF.selectExpr("case when book1>1 then 1 else 0 end as book0")
-    book0.printSchema()
-    println("book0 data is ")
-    book0.show()
-    println("bookDF data is:")
+    val bookDF2 = sc.createDataFrame(recs3, schema2)
+    val bookDF3 = bookDF.join(bookDF2, Seq("name1","book1"),"leftouter").select("name1","book1","book2","book4")
+    bookDF3.where("book4 is null").show()
+    //bookDF3.where("book22 is null").show()
+    /*val bookdf4 = bookDF3.select(bookDF("name1").alias("dfbook1"),bookDF3("name1").alias("df3book1"))
+    bookdf4.show()*/
+    /*bookDF.show()
+    val addFunc = udf(testFunc)
+    val a = bookDF.withColumn("addbook",addFunc(bookDF("book1"),bookDF("book2")))
     bookDF.show()
-    val bookRow = bookDF.rdd.first()
-    println("bookRow first row is "+bookRow)
-    println("bookRow first type is "+bookRow.getClass.getName)
+    a.show()*/
 
-    val booksql = bookDF.groupBy($"name1").avg("book1","book2")
+   /* val booksql = bookDF.groupBy($"name1").avg("book1","book2")
     booksql.show()
 
     val recsRdd = sc.sparkContext.parallelize(recs)
@@ -79,33 +92,11 @@ object sc_test {
     println(recsDF.first())
     println("recsDF_rdd type is "+recsDF.rdd.first().getClass.getName)
     println("recsDF_rdd first row is "+recsDF.rdd.first())
-
-
-    println("recsDF type is "+recsDF.getClass.getName)
-
-    /*val movieFile = "D:\\spark_local\\ml-100k\\u.data" // Should be some file on your system
-    val conf = new SparkConf().setAppName("Simple Application").setMaster("local")//.setJars(List("/home/zhuan/IdeaProjects/hello/out/artifacts/hello_jar/hello.jar"))
-    val sc = new SparkContext(conf)
-    val logData = sc.textFile(movieFile, 2).cache()
-    println("logData type is "+logData.getClass)
-    println("data lines number is "+logData.count())
-    //println(logData.collect())
-    val numAs = logData.filter(line => line.contains("a")).count()
-    val numBs = logData.filter(line => line.contains("b")).count()
-    println("Lines with a: %s, Lines with b: %s".format(numAs, numBs))*/
-
-    ////    val data = Array(1, 2, 3, 4, 5)
-    ////    val distData = sc.parallelize(data)
-    ////    println(distData.take(1))
-    ////    println(distData)
-    //    val lines = sc.textFile("/home/zhuan/Soft/spark-2.0.0-bin-hadoop2.7/README.md")
-    //    val lineLengths = lines.map(s => s.length)
-    //    val totalLength = lineLengths.reduce((a, b) => a + b)
-    //    println(totalLength)
-
-
+    println("recsDF type is "+recsDF.getClass.getName)*/
 
   }
+
+
 
 }
 

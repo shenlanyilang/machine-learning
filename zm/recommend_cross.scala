@@ -42,10 +42,14 @@ object recommend_cross {
       .getOrCreate()
 
     val ratings = rddToDF(sparkSession)
+    //ratings.rdd.saveAsObjectFile("D:\\spark_local\\ml-100k\\u1_rdd.data")
+    val ratings2 = sparkSession.sparkContext.objectFile("D:\\spark_local\\ml-100k\\u1_rdd.data")
+    //ratings2.first()
     val cf_model = new ALS().setImplicitPrefs(false).setMaxIter(10).setUserCol("userId")
       .setItemCol("movieId").setRatingCol("rating").setPredictionCol("prediction")
       .setRank(10)
       .setColdStartStrategy("drop")
+    println(ratings2.getClass.getName)
 
     val Array(train,test) = ratings.randomSplit(Array(0.8,0.2))
     val transformTest = train.select("userId","movieId","timestamp","rating")

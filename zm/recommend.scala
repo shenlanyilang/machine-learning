@@ -13,34 +13,35 @@ object recommend {
 
   def main(args: Array[String]): Unit ={
 
-    val day = args(0)
+    val day = "'"+args(0)+"'"
     val sparkSession = SparkSession.builder()
       .appName("newsappRecommend")
-      .master("master")
       .enableHiveSupport()
       .getOrCreate()
 
     val maxIter = 10
-    val regParam = 1.0
+    val regParam = 0.1
     val userCol = "userId"
     val itemCol = "articleId"
     val ratingCol = "rating"
     val alpha = 2.0
+    val rank = 200
 
     sparkSession.sql("use newsapp")
     val trainSamples = sparkSession.sql("select cf_uid userId,cf_article_id articleId,rating,article_time timestamp " +
-      "from newsapp.cf_train_sample where id like 'user_%' and day=2018-06-26")
-    val userPreRec = sparkSession.sql("select cf_uid userId,cf_article_id articleId,id,article_id" +
+      "from newsapp.cf_train_sample_filter where day="+day)
+    val userPreRec = sparkSession.sql("select cf_uid userId,cf_article_id articleId,id,article_id " +
       "from cf_pre_rec_article")
     trainSamples.persist()
     userPreRec.persist()
-    val articleNumbers = trainSamples.dropDuplicates(Array("article_id")).count()
-    val userNumbers = trainSamples.dropDuplicates(Array("id")).count()
+    /*val articleNumbers = trainSamples.dropDuplicates(Array("article_id")).count()
+    val userNumbers = trainSamples.dropDuplicates(Array("id")).count()*/
 
     val als = new ALS()
       .setMaxIter(maxIter)
       .setRegParam(regParam)
       .setAlpha(alpha)
+      .setRank(rank)
       .setUserCol(userCol)
       .setItemCol(itemCol)
       .setRatingCol(ratingCol)
@@ -50,11 +51,9 @@ object recommend {
     model.setColdStartStrategy("drop")
     val userRecArticleRating = model.transform(userPreRec)
     userRecArticleRating.createOrReplaceTempView("userRecArticleRating")
-    sparkSession.sql("create external table if not exists cf_predict_user_article(" +
+    sparkSession.sql("create table if not exists cf_predict_user_article(" +
       "id string,article_id string,cf_uid int,cf_article_id int,rating_pred float)")
     sparkSession.sql("insert overwrite table cf_predict_user_article " +
       "select id,article_id,userId,articleId,prediction from userRecArticleRating")
-
   }
-
 }

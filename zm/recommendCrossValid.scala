@@ -15,14 +15,14 @@ object recommendCrossValid {
       .enableHiveSupport()
       .getOrCreate()
 
-    val regParam =  Array(0.1,0.05,0.01,0.005,0.001)
+    val regParam =  Array(1.0, 0.5, 0.2, 0.1, 0.05)
     val alpha = Array(2.0)
-    val rank = Array(100,150,200)
+    val rank = Array(200)
 
     //测试时参数
-    /*val regParam =  Array(0.01)
+    /*val regParam =  Array(0.1)
     val alpha = Array(2.0)
-    val rank = Array(100)*/
+    val rank = Array(200)*/
 
     val maxIter = 10
     val userCol = "userId"
